@@ -442,17 +442,65 @@ static const VulkanOptExtension optional_device_exts[] = {
 #endif
 
     /* Video encoding/decoding */
-    { VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,                      FF_VK_EXT_VIDEO_QUEUE            },
-    { VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,               FF_VK_EXT_VIDEO_DECODE_QUEUE     },
-    { VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,                FF_VK_EXT_VIDEO_DECODE_H264      },
-    { VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,                FF_VK_EXT_VIDEO_DECODE_H265      },
-    { VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME,                 FF_VK_EXT_VIDEO_DECODE_AV1       },
+    /* They're not currently used, so they're not needed
+     * Vulkan stabilized the decode extensions and their
+     * name prefixes were changed from EXT to KHR.
+     */
+    /*
+    { VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,                      FF_VK_EXT_NO_FLAG                },
+    { VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,               FF_VK_EXT_NO_FLAG                },
+    { VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,               FF_VK_EXT_NO_FLAG                },
+    { VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME,                FF_VK_EXT_NO_FLAG                },
+    { VK_EXT_VIDEO_DECODE_H264_EXTENSION_NAME,                FF_VK_EXT_NO_FLAG                },
+    { VK_EXT_VIDEO_DECODE_H265_EXTENSION_NAME,                FF_VK_EXT_NO_FLAG                },
+    */
 };
 
-static VkBool32 VKAPI_CALL vk_dbg_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-                                           VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                           const VkDebugUtilsMessengerCallbackDataEXT *data,
-                                           void *priv)
+/* Converts return values to strings */
+static const char *vk_ret2str(VkResult res)
+{
+#define CASE(VAL) case VAL: return #VAL
+    switch (res) {
+    CASE(VK_SUCCESS);
+    CASE(VK_NOT_READY);
+    CASE(VK_TIMEOUT);
+    CASE(VK_EVENT_SET);
+    CASE(VK_EVENT_RESET);
+    CASE(VK_INCOMPLETE);
+    CASE(VK_ERROR_OUT_OF_HOST_MEMORY);
+    CASE(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+    CASE(VK_ERROR_INITIALIZATION_FAILED);
+    CASE(VK_ERROR_DEVICE_LOST);
+    CASE(VK_ERROR_MEMORY_MAP_FAILED);
+    CASE(VK_ERROR_LAYER_NOT_PRESENT);
+    CASE(VK_ERROR_EXTENSION_NOT_PRESENT);
+    CASE(VK_ERROR_FEATURE_NOT_PRESENT);
+    CASE(VK_ERROR_INCOMPATIBLE_DRIVER);
+    CASE(VK_ERROR_TOO_MANY_OBJECTS);
+    CASE(VK_ERROR_FORMAT_NOT_SUPPORTED);
+    CASE(VK_ERROR_FRAGMENTED_POOL);
+    CASE(VK_ERROR_SURFACE_LOST_KHR);
+    CASE(VK_ERROR_NATIVE_WINDOW_IN_USE_KHR);
+    CASE(VK_SUBOPTIMAL_KHR);
+    CASE(VK_ERROR_OUT_OF_DATE_KHR);
+    CASE(VK_ERROR_INCOMPATIBLE_DISPLAY_KHR);
+    CASE(VK_ERROR_VALIDATION_FAILED_EXT);
+    CASE(VK_ERROR_INVALID_SHADER_NV);
+    CASE(VK_ERROR_OUT_OF_POOL_MEMORY);
+    CASE(VK_ERROR_INVALID_EXTERNAL_HANDLE);
+    CASE(VK_ERROR_NOT_PERMITTED_EXT);
+    CASE(VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT);
+    CASE(VK_ERROR_INVALID_DEVICE_ADDRESS_EXT);
+    CASE(VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
+    default: return "Unknown error";
+    }
+#undef CASE
+}
+
+static VkBool32 vk_dbg_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+                                VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                const VkDebugUtilsMessengerCallbackDataEXT *data,
+                                void *priv)
 {
     int l;
     AVHWDeviceContext *ctx = priv;
